@@ -55,7 +55,7 @@ class DMDCompiler : Compiler {
 
 	@property string name() const { return "dmd"; }
 
-	BuildPlatform determinePlatform(ref BuildSettings settings, string compiler_binary, string arch_override)
+	BuildPlatform determinePlatform(ref BuildSettings settings, CompilerSpecification compiler_spec, string arch_override)
 	{
 		string[] arch_flags;
 		switch (arch_override) {
@@ -66,7 +66,7 @@ class DMDCompiler : Compiler {
 		}
 		settings.addDFlags(arch_flags);
 
-		return probePlatform(compiler_binary, arch_flags ~ ["-quiet", "-c", "-o-"], arch_override);
+		return probePlatform(compiler_spec, arch_flags ~ ["-quiet", "-c", "-o-"], arch_override);
 	}
 
 	void prepareBuildSettings(ref BuildSettings settings, BuildSetting fields = BuildSetting.all) const
@@ -201,6 +201,7 @@ class DMDCompiler : Compiler {
 		std.file.write(res_file.toNativeString(), escapeArgs(args).join("\n"));
 
 		logDiagnostic("%s %s", platform.compilerBinary, escapeArgs(args).join(" "));
+
 		invokeTool([platform.compilerBinary, "@"~res_file.toNativeString()], output_callback);
 	}
 

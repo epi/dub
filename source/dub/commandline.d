@@ -543,6 +543,7 @@ abstract class PackageBuildCommand : Command {
 		string m_arch;
 		string[] m_debugVersions;
 		Compiler m_compiler;
+		CompilerSpecification m_compilerSpec;
 		BuildPlatform m_buildPlatform;
 		BuildSettings m_buildSettings;
 		string m_defaultConfig;
@@ -590,10 +591,12 @@ abstract class PackageBuildCommand : Command {
 	protected void setupPackage(Dub dub, string package_name, string default_build_type = "debug")
 	{
 		if (!m_compilerName.length) m_compilerName = dub.defaultCompiler;
+		m_compilerSpec = dub.getCompilerSpecification(m_compilerName);
 		m_compiler = getCompiler(m_compilerName);
-		m_buildPlatform = m_compiler.determinePlatform(m_buildSettings, m_compilerName, m_arch);
+		m_buildSettings.addDFlags(m_compilerSpec.dflags);
+		m_buildSettings.addLFlags(m_compilerSpec.lflags);
+		m_buildPlatform = m_compiler.determinePlatform(m_buildSettings, m_compilerSpec, m_arch);
 		m_buildSettings.addDebugVersions(m_debugVersions);
-
 		m_defaultConfig = null;
 		enforce (loadSpecificPackage(dub, package_name), "Failed to load package.");
 
@@ -751,7 +754,6 @@ class GenerateCommand : PackageBuildCommand {
 		gensettings.rdmd = m_rdmd;
 		gensettings.tempBuild = m_tempBuild;
 		gensettings.parallelBuild = m_parallel;
-
 		logDiagnostic("Generating using %s", m_generator);
 		dub.generateProject(m_generator, gensettings);
 		if (m_buildType == "ddox") dub.runDdox(gensettings.run, app_args);

@@ -22,6 +22,12 @@ import std.exception;
 import std.process;
 
 
+struct CompilerSpecification {
+	@optional string path;
+	@optional string[] dflags;
+	@optional string[] lflags;
+}
+
 /** Returns a compiler handler for a given binary name.
 
 	The name will be compared against the canonical name of each registered
@@ -65,7 +71,7 @@ interface Compiler {
 
 		See_Also: `dub.compilers.utils.generatePlatformProbeFile`
 	*/
-	BuildPlatform determinePlatform(ref BuildSettings settings, string compiler_binary, string arch_override = null);
+	BuildPlatform determinePlatform(ref BuildSettings settings, CompilerSpecification compiler_spec, string arch_override = null);
 
 	/// Replaces high level fields with low level fields and converts
 	/// dmd flags to compiler-specific flags
@@ -116,19 +122,20 @@ interface Compiler {
 	}
 
 	/// Compiles platform probe file with the specified compiler and parses its output.
-	protected final BuildPlatform probePlatform(string compiler_binary, string[] args, string arch_override)
+	protected final BuildPlatform probePlatform(CompilerSpecification compiler_spec, string[] args, string arch_override)
 	{
 		import std.string : format;
 		import dub.compilers.utils : generatePlatformProbeFile, readPlatformProbe;
 
 		auto fil = generatePlatformProbeFile();
 
-		auto result = executeShell(escapeShellCommand(compiler_binary ~ args ~ fil.toNativeString()));
+		auto result = executeShell(escapeShellCommand(
+				compiler_spec.path ~ compiler_spec.dflags ~ args ~ fil.toNativeString()));
 		enforce(result.status == 0, format("Failed to invoke the compiler %s to determine the build platform: %s",
-				compiler_binary, result.output));
+				compiler_spec.path, result.output));
 
 		auto build_platform = readPlatformProbe(result.output);
-		build_platform.compilerBinary = compiler_binary;
+		build_platform.compilerBinary = compiler_spec.path;
 
 		if (build_platform.compiler != this.name) {
 			logWarn(`The determined compiler type "%s" doesn't match the expected type "%s". This will probably result in build errors.`,

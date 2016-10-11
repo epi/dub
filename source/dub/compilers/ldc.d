@@ -55,7 +55,7 @@ class LDCCompiler : Compiler {
 
 	@property string name() const { return "ldc"; }
 
-	BuildPlatform determinePlatform(ref BuildSettings settings, string compiler_binary, string arch_override)
+	BuildPlatform determinePlatform(ref BuildSettings settings, CompilerSpecification compiler_spec, string arch_override)
 	{
 		string[] arch_flags;
 		switch (arch_override) {
@@ -66,7 +66,7 @@ class LDCCompiler : Compiler {
 		}
 		settings.addDFlags(arch_flags);
 
-		return probePlatform(compiler_binary, arch_flags ~ ["-c", "-o-"], arch_override);
+		return probePlatform(compiler_spec, arch_flags ~ ["-c", "-o-"], arch_override);
 	}
 
 	void prepareBuildSettings(ref BuildSettings settings, BuildSetting fields = BuildSetting.all) const

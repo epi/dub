@@ -55,7 +55,7 @@ class GDCCompiler : Compiler {
 
 	@property string name() const { return "gdc"; }
 
-	BuildPlatform determinePlatform(ref BuildSettings settings, string compiler_binary, string arch_override)
+	BuildPlatform determinePlatform(ref BuildSettings settings, CompilerSpecification compiler_spec, string arch_override)
 	{
 		string[] arch_flags;
 		switch (arch_override) {
@@ -69,7 +69,7 @@ class GDCCompiler : Compiler {
 		settings.addDFlags(arch_flags);
 
 		auto binary_file = getTempFile("dub_platform_probe");
-		return probePlatform(compiler_binary,
+		return probePlatform(compiler_spec,
 			arch_flags ~ ["-c", "-o", binary_file.toNativeString()],
 			arch_override);
 	}

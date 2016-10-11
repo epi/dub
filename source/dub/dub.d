@@ -1038,12 +1038,12 @@ class Dub {
 		ddox_dub.loadPackage(tool_pack.path);
 		ddox_dub.upgrade(UpgradeOptions.select);
 
-		auto compiler_binary = this.defaultCompiler;
+		auto compiler_spec = getCompilerSpecification(this.defaultCompiler);
 
 		GeneratorSettings settings;
 		settings.config = "application";
-		settings.compiler = getCompiler(compiler_binary); // TODO: not using --compiler ???
-		settings.platform = settings.compiler.determinePlatform(settings.buildSettings, compiler_binary);
+		settings.compiler = getCompiler(this.defaultCompiler); // TODO: not using --compiler ???
+		settings.platform = settings.compiler.determinePlatform(settings.buildSettings, compiler_spec);
 		settings.buildType = "debug";
 		settings.run = true;
 
@@ -1070,6 +1070,11 @@ class Dub {
 			version(Windows) runCommand("xcopy /S /D "~tool_path~"public\\* docs\\");
 			else runCommand("rsync -ru '"~tool_path~"public/' docs/");
 		}
+	}
+
+	package CompilerSpecification getCompilerSpecification(string name)
+	{
+		return m_config.getCompilerSpecification(name);
 	}
 
 	private void updatePackageSearchPath()
@@ -1412,5 +1417,16 @@ private class DubConfig {
 			return pv.get!string;
 		if (m_parentConfig) return m_parentConfig.defaultCompiler;
 		return null;
+	}
+
+	@property CompilerSpecification getCompilerSpecification(string name)
+	{
+		if (auto pv = "compilers" in m_data) {
+			if (auto pc = name in *pv)
+				return (*pc).deserializeJson!CompilerSpecification();
+		}
+		if (m_parentConfig)
+			return m_parentConfig.getCompilerSpecification(name);
+		return CompilerSpecification(name);
 	}
 }
