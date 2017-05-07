@@ -232,7 +232,7 @@ struct TargetTriple {
 /// Represents a platform a package can be build upon.
 struct BuildPlatform {
 	/// Special constant used to denote matching any build platform.
-	enum any = BuildPlatform(null, null, null, null, -1);
+	enum any = BuildPlatform(null, null, TargetTriple.init, null, null, -1);
 
 	/// Platform identifiers, e.g. ["posix", "windows"]
 	string[] platform;
